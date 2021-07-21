@@ -1,0 +1,111 @@
+* {
+  box-sizing: border-box;
+}
+
+#board {
+  border: 1px solid blue;
+  width: 802px;
+  /* min-height: 500px; */
+}
+
+#pieces {
+  border: 1px solid blue;
+  width: 802px;
+  min-height: 802px;
+  display: none;
+}
+
+#box1, #box2 {
+  width: 100px;
+  height: 100px;
+  border: 1px solid red;
+}
+
+#box2 {
+  border: 1px solid blue;
+}
+
+.box, #box1, #box2, #boxv {
+  font-size: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* margin-bottom: -4px; */
+  /* font-size:  */
+  float: left;
+  pointer-events: auto;
+  width: 100px;
+  height: 100px;
+  border: 1px solid red;
+}
+
+.whitebox {
+  background: #eeeed2;
+}
+
+.blackbox {
+  background: #769656;
+}
+
+#boxv {
+  width: 100px;
+  height: 100px;
+  border: 4px dashed violet;
+  pointer-events: none;
+  /* display: none; */
+  position: absolute;
+}
+
+.movepiece {
+  transform: translate(calc(var(--dx) *  1px), calc(var(--dy) * 1px));
+  transition: transform calc(var(--dt) * 1s);
+  /* transition: transform (calc(var(--dt))); */
+  /* transition: transform var(calc(--dt)*3); */
+}
+
+
+
+
+#boxv {
+  /* -webkit-transition-duration: 3s;
+  -moz-transition-duration: 3s;
+  -o-transition-duration: 3s;
+  transition-duration: 3s;
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform; */
+}
+
+.enable-css-transitions {
+  /* -webkit-transition-duration: 3s;
+  -moz-transition-duration: 3s;
+  -o-transition-duration: 3s;
+  transition-duration: 3s;
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform; */
+  animation: move 3s;
+}
+
+.disable-css-transitions, ::before, :after {
+  /* -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important; */
+  transition-property: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+
+
+
+/* @keyframes movepiece {
+  from {
+    top: var(--t0, 0);
+    left: var(--l0, 0);
+  }
+
+} */
