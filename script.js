@@ -7,7 +7,9 @@ let srect, trect
 let $boxv
 let oldColor
 let clickMode = true
-const dt = 0.1
+let dt = 0.1
+let cancelClick
+
 document.addEventListener('DOMContentLoaded', function () {
 
   // let clickMode = false
@@ -27,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const $div = document.createElement('div')
     $div.classList.add('box')
+    $div.classList.add('noselect')
     $board.appendChild($div)
 
     if (i < 8) {
@@ -85,264 +88,206 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
- 
   $boxes.forEach(($box) => {
     if (1) {
       if (1)
-        $box.addEventListener('mousemove', function (e) {
-          e.preventDefault()
-          if (clickMode === false) {
-            // if (selected) {
-            // console.log(e.x, e.y)
-            $boxv.style.position = 'absolute'
-            let y = pageYOffset + e.y - 50
-            let x = pageXOffset + e.x - 50
-            $boxv.style.top = y + "px"
-            $boxv.style.left = x + "px"
+        $box.addEventListener('mousemove', mousemoveHandler)
+      function mousemoveHandler(e) {
+        if (clickMode === false) {
+          $boxv.style.position = 'absolute'
+          let y = pageYOffset + e.y - 50
+          let x = pageXOffset + e.x - 50
+          $boxv.style.top = y + "px"
+          $boxv.style.left = x + "px"
 
-            if ($boxv.innerHTML !== '') {
-              document.body.style.cursor = "grabbing"
-            }
+          if (boxIsOccupied($boxv)) {
+            document.body.style.cursor = "grabbing"
           }
-        })
-
+        }
+      }
       if (1)
-        $box.addEventListener('mousedown', function (e) {
-          e.preventDefault()
-          clickMode = false
-          console.log('mousedown clickMode', clickMode)
-          if (clickMode === false) {
-            e.preventDefault()
-            console.log('mousedown', $box.innerHTML)
+        // $box.addEventListener('mousedown', function (e) {
+        //   cancelClick = setTimeout(dontClick, 500, e, this)
+        // })
+        $box.addEventListener('mousedown', selectHandler)
 
-            if (this.innerHTML !== '') {
-              // $boxv.style.display = 'inline-flex'
-              $boxv.innerHTML = this.innerHTML
-              this.innerHTML = ''
-              document.body.style.cursor = "grabbing"
-              selectedPiece = this
-            }
-            else document.body.style.cursor = "default"
-          } else {
-            e.preventDefault()
+      function selectHandler(e) {
+        cancelClick = setTimeout(dontClick, 500, e, this)
+      }
+
+      function dontClick(e, elem) {
+
+        clickMode = false
+        mousedownHandler(e, elem)
+      }
+
+      function mousedownHandler(e, elem) {
+        console.log('mousedown clickMode', clickMode)
+        if (clickMode === false) {
+          console.log('mousedown', elem.innerHTML)
+
+          if (boxIsOccupied(elem)) {
+
+            resetTransform()
+
+            $boxv.innerHTML = elem.innerHTML
+            elem.innerHTML = ''
+            document.body.style.cursor = "grabbing"
+            selectedPiece = elem  // note that selectedPiece is  erased. $boxv contains the piece. use $boxv when checking color
           }
+          else document.body.style.cursor = "default"
+        } else {
+          console.log('do nothing')
+        }
 
-        })
+      }
       if (1)
-        $box.addEventListener('mouseup', function (e) {
-          e.preventDefault()
-          console.log('mouseup', this.innerHTML)
-          if (clickMode === false) {
-            // e.preventDefault()
-            if (this.innerHTML !== '') {
-              document.body.style.cursor = "grab"
+        $box.addEventListener('mouseup', mouseupHandler)
+      function mouseupHandler(e) {
+        console.log('mouseup', this.innerHTML)
+        clearTimeout(cancelClick)
+        if (clickMode === false) { // mouse drag
+          if (boxIsOccupied(this)) {
+            document.body.style.cursor = "grab"
 
-              //  compare this.innerHTML and $boxv.innerHTML. if different color, eat. otherwise, do nothing
-              const source = checkColor($boxv)
-              const target = checkColor(this)
-              if (source !== target) {
-                console.log('take prisoner')
-                this.innerHTML = $boxv.innerHTML
-                // $boxv.style.display = 'none'
-                $boxv.innerHTML = ''
-                document.body.style.cursor = "grab"
-                selectedPiece = ''
-              } else {
-                console.log(source, target)
-                console.log('walk away')
-                console.log(selectedPiece)
-                selectedPiece.innerHTML = $boxv.innerHTML
-                // $boxv.style.display = 'none'
-                $boxv.innerHTML = ''
-                selectedPiece = ''
-              }
-
-            }
-            else { // this.innerHTML === ''
+            //  compare this.innerHTML and $boxv.innerHTML. if different color, eat. otherwise, do nothing
+            const source = checkColor($boxv)
+            const target = checkColor(this)
+            if (source !== target) { // opponent on box
+              console.log('take prisoner')
               this.innerHTML = $boxv.innerHTML
-              // $boxv.style.display = 'none'
-              $boxv.innerHTML = ''
-              document.body.style.cursor = "grab"
-              selectedPiece = ''
-            }
-          }
-          else { // clickMode !== false
-            if (this.innerHTML !== '') {
-              console.log('clicked and occupied')
-            } else {
-              console.log('clicked and vacant')
-            }
-            // clickMode = false // reset click
-            // selectedPiece = ''
-          }
-          clickMode = true
-        })
-
-      $box.addEventListener('mouseover', function (e) {
-        e.preventDefault()
-        if (this.innerHTML === '') document.body.style.cursor = "default"
-        else document.body.style.cursor = "grab"
-      })
-    }
-    if (1)
-      $box.addEventListener('click', function (e) {
-        e.preventDefault()
-        e.stopPropagation();
-        console.log('click clickMode', clickMode)
-        console.log('selectedPiece', selectedPiece)
-        clickMode = true
-        // console.log('clickMode', clickMode)
-        if (this.innerHTML !== '')
-          if (pick === false) {
-            pick = true
-            console.log('pick')
-            const $this = this.getBoundingClientRect()
-            console.log($this.top, $this.left)
-            // $boxv.style.setProperty('--dt', 0)
-            $boxv.style.removeProperty('--dt')
-            $boxv.style.removeProperty('--dx')
-            $boxv.style.removeProperty('--dy')
-
-            console.log(pageXOffset, pageYOffset, $this.top, $this.left)
-            $boxv.style.top = pageYOffset + $this.top + "px"
-            $boxv.style.left = pageXOffset + $this.left + "px"
-            selectedPiece = this
-            console.log('selectedPiece', selectedPiece)
-            // $boxv.classList.remove("disable-css-transitions")
-            $boxv.innerHTML = selectedPiece.innerHTML
-          }
-          else {
-            // checkColor take or walk
-            // const sourceColor = checkColor(selectedPiece)
-            const sourceColor = checkColor(selectedPiece)
-
-            const targetColor = checkColor(this)
-            console.log(sourceColor, targetColor)
-            if (sourceColor === targetColor) {
-              console.log('walk/repick')
-              pick = false
-              pick = true
+              // $boxv.innerHTML = ''
               const $this = this.getBoundingClientRect()
               console.log($this.top, $this.left)
-              // $boxv.style.display = "inline-flex"
+              $boxv.style.top = pageYOffset + $this.top + "px"
+              $boxv.style.left = pageXOffset + $this.left + "px"
+
+              document.body.style.cursor = "grab"
+              selectedPiece = ''
+              pick = false
+            } else { // friend on box
+              console.log('walk away')
+              // selectedPiece.innerHTML = $boxv.innerHTML
+              // $boxv.innerHTML = ''
+              // selectedPiece = ''
+              const $this = selectedPiece.getBoundingClientRect()
+              console.log($this.top, $this.left)
+              $boxv.style.top = pageYOffset + $this.top + "px"
+              $boxv.style.left = pageXOffset + $this.left + "px"
+              pick = true
+              selectedPiece.innerHTML = $boxv.innerHTML // since selectedPiece is already empty when mousedown select on it
+              console.log(selectedPiece.innerHTML)
+            }
+
+          }
+          else { // this.innerHTML === ''
+            this.innerHTML = $boxv.innerHTML
+            // $boxv.innerHTML = ''
+            const $this = this.getBoundingClientRect()
+            console.log($this.top, $this.left)
+            $boxv.style.top = pageYOffset + $this.top + "px"
+            $boxv.style.left = pageXOffset + $this.left + "px"
+            document.body.style.cursor = "grab"
+            selectedPiece = ''
+            piece = false
+          }
+        }
+        else { // clickMode !== false // click mode
+          clickMode = true
+          if (boxIsOccupied(this))
+            if (pick === false) {
+              pick = true
+              console.log('pick')
+              const $this = this.getBoundingClientRect()
+              console.log($this.top, $this.left)
+
+              resetTransform()
+
+              console.log(pageXOffset, pageYOffset, $this.top, $this.left)
               $boxv.style.top = pageYOffset + $this.top + "px"
               $boxv.style.left = pageXOffset + $this.left + "px"
               selectedPiece = this
-              $boxv.innerHTML = this.innerHTML
-
-            } else { // take and place have the same routine
-              console.log('take')
-              pick = false
-              const $this = this.getBoundingClientRect()
-              console.log($this.top, $this.left)
-              // $boxv.style.display = "inline-flex"
-
-              const s = selectedPiece.getBoundingClientRect()
-              const t = this.getBoundingClientRect()
-              const dx = t.left - s.left
-              const dy = t.top - s.top
-
-              $boxv.style.removeProperty('--dx')
-              $boxv.style.removeProperty('--dy')
-              $boxv.style.setProperty('--dt', dt)
-              $boxv.style.setProperty('--dx', dx)
-              $boxv.style.setProperty('--dy', dy)
-
-
-
-              // this.innerHTML = selectedPiece.innerHTML
-              selectedPiece.innerHTML = ''
-              // $boxv.style.display = "none"
-              takenPiece = this
+              console.log('selectedPiece', selectedPiece)
+              $boxv.innerHTML = selectedPiece.innerHTML
             }
-            // $boxv.style.display = "none"
-          }
-        else { // targeting empty square
-          if (pick === true) {
-            console.log('place')
-            pick = false
-            const $this = this.getBoundingClientRect()
-            console.log($this.top, $this.left)
-            // $boxv.style.display = "inline-flex"
+            else {
+              // checkColor take or walk
+              // const sourceColor = checkColor(selectedPiece)
+              const sourceColor = checkColor($boxv)
 
-            const s = selectedPiece.getBoundingClientRect()
-            const t = this.getBoundingClientRect()
-            const dx = t.left - s.left
-            const dy = t.top - s.top
+              const targetColor = checkColor(this)
+              console.log(sourceColor, targetColor)
+              if (sourceColor === targetColor) {
+                console.log('walk/repick')
+                // pick = false
+                // pick = true
+                const $this = this.getBoundingClientRect()
+                console.log($this.top, $this.left)
+                $boxv.style.top = pageYOffset + $this.top + "px"
+                $boxv.style.left = pageXOffset + $this.left + "px"
+                selectedPiece = this
+                $boxv.innerHTML = this.innerHTML
 
-            $boxv.style.removeProperty('--dx')
-            $boxv.style.removeProperty('--dy')
-            $boxv.style.setProperty('--dt', dt)
-            $boxv.style.setProperty('--dx', dx)
-            $boxv.style.setProperty('--dy', dy)
+              } else { // take and place have the same routine
+                console.log('take')
+                pick = false
 
+                glide(this)
 
+              }
+            }
+          else { // targeting empty square
+            if (pick === true) {
+              console.log('place')
+              pick = false
 
-            // this.innerHTML = selectedPiece.innerHTML
-            selectedPiece.innerHTML = ''
-            // $boxv.style.display = "none"
-            takenPiece = this
+              glide(this)
 
-          } else {
-            console.log('do nothing')
-          }
-        }
-
-        console.log('pick', pick)
-
-
-        if (0)
-          if (selectedPiece === '') {
-            console.log('no selectedPiece')
-            if (this.innerHTML !== '') {
-              selectedPiece = this
-              $boxv.innerHTML = this.innerHTML
             } else {
               console.log('do nothing')
             }
-          } else { // selectedPiece !== ''
-            console.log('selectedPiece')
-            if (this.innerHTML !== '') {
-              console.log('checkColor and decide take/walk')
-              // selectedPiece = this
-
-              //  compare this.innerHTML and $boxv.innerHTML. if different color, eat. otherwise, do nothing
-              // const source = checkColor($boxv)
-              // const target = checkColor(this)
-              // if (source !== target) {
-              //   console.log('take prisoner')
-              //   this.innerHTML = $boxv.innerHTML
-              //   $boxv.style.display = 'none'
-              //   $boxv.innerHTML = ''
-              //   document.body.style.cursor = "grab"
-              // } else {
-              //   console.log(source, target)
-              //   console.log('walk away')
-              //   console.log(selectedPiece)
-              //   selectedPiece.innerHTML = $boxv.innerHTML
-              //   $boxv.style.display = 'none'
-              //   $boxv.innerHTML = ''
-              // }
-
-
-            } else {
-              console.log('occupy empty square/box')
-              let s = selectedPiece.getBoundingClientRect()
-              console.log(s.top, s.right, s.bottom, s.left)
-              let t = $box.getBoundingClientRect()
-              console.log(t.top, t.right, t.bottom, t.left)
-              // $boxv.style.transform = 'translate(200px, 100px)'
-              console.log(selectedPiece.innerHTML)
-              $box.innerHTML = selectedPiece.innerHTML
-              selectedPiece.innerHTML = ''
-              $boxv.style.display = 'none'
-              $boxv.innerHTML = ''
-            }
           }
 
-        // this.style.background = '#f6f668'
-        clickMode = false
-      })
+          console.log('pick', pick)
+
+          clickMode = false
+
+        }
+        clickMode = true
+      }
+      $box.addEventListener('mouseover', mouseoverHandler)
+      function mouseoverHandler(e) {
+        if (!boxIsOccupied(this)) document.body.style.cursor = "default"
+        else document.body.style.cursor = "grab"
+      }
+    }
+
+    function glide(elem) {
+
+      const s = selectedPiece.getBoundingClientRect()
+      const t = elem.getBoundingClientRect()
+      const dx = t.left - s.left
+      const dy = t.top - s.top
+
+      $boxv.style.removeProperty('--dx')
+      $boxv.style.removeProperty('--dy')
+      $boxv.style.setProperty('--dt', dt)
+      $boxv.style.setProperty('--dx', dx)
+      $boxv.style.setProperty('--dy', dy)
+
+      selectedPiece.innerHTML = ''
+      takenPiece = elem
+    }
+
+    function resetTransform() {
+      $boxv.style.removeProperty('--dt')
+      $boxv.style.removeProperty('--dx')
+      $boxv.style.removeProperty('--dy')
+    }
+
+    function boxIsOccupied(elem) {
+      return elem.innerHTML !== ''
+    }
   })
 
 
@@ -371,13 +316,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function checkColor(piece) {
     let el = document.createElement('div')
-    // el.innerHTML = whitepieces[0].value
-    // console.log(el.innerHTML)
+
     let f = whitepieces.some(whitepiece => {
 
       el.innerHTML = whitepiece.value
 
-      // console.log(el.innerHTML, piece.innerHTML)
       return el.innerHTML == piece.innerHTML
     })
     if (f) return 'white'

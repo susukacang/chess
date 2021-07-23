@@ -99,13 +99,11 @@
   animation: none !important;
 }
 
-
-
-
-/* @keyframes movepiece {
-  from {
-    top: var(--t0, 0);
-    left: var(--l0, 0);
-  }
-
-} */
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
