@@ -12,6 +12,27 @@ let cancelClick
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // setup layout, labels
+  const ylabel = ["8", "7", "6", "5", "4", "3", "2", "1"]
+  const $ylabels = document.getElementById('ylabels')
+  for (let i = 0; i < 8; i++) {
+    const $div = document.createElement('div')
+    $div.classList.add('ylabel')
+    $div.innerHTML = ylabel[i]
+    // $div.classList.add('noselect')
+    $ylabels.appendChild($div)
+  }
+
+  const xlabel = ["a", "b", "c", "d", "e", "f", "g", "h"]
+  const $xlabels = document.getElementById('xlabels')
+  for (let i = 0; i < 8; i++) {
+    const $div = document.createElement('div')
+    $div.classList.add('xlabel')
+    $div.innerHTML = xlabel[i]
+    // $div.classList.add('noselect')
+    $xlabels.appendChild($div)
+  }
+
   // let clickMode = false
   let selected = false
   // let selectedPiece = ''
@@ -62,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const $boxes = document.getElementById('board').querySelectorAll('.box')
 
+  // place pieces
   $boxes.forEach(($box, i) => {
     console.log($box, i)
     if (i >= 8 && i < 16) $box.innerHTML = blackpieces[5].value // 'PAWN'
@@ -78,6 +100,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (i === 60) $box.innerHTML = whitepieces[0].value // 'KING'
   })
 
+  // assign class occupied 
+  $boxes.forEach(($box) => {
+    if ($box.innerHTML !== '')
+      $box.classList.add('occupied')
+  })
+
   // label boxes
 
   const m = ['8', '7', '6', '5', '4', '3', '2', '1']
@@ -90,175 +118,166 @@ document.addEventListener('DOMContentLoaded', function () {
 
   $boxes.forEach(($box) => {
     if (1) {
-      if (1)
-        $box.addEventListener('mousemove', mousemoveHandler)
+      $box.addEventListener('mousemove', mousemoveHandler)
       function mousemoveHandler(e) {
         if (clickMode === false) {
-          $boxv.style.position = 'absolute'
+          selectedPiece.innerHTML = ''
           let y = pageYOffset + e.y - 50
           let x = pageXOffset + e.x - 50
           $boxv.style.top = y + "px"
           $boxv.style.left = x + "px"
 
-          if (boxIsOccupied($boxv)) {
-            document.body.style.cursor = "grabbing"
-          }
+          document.body.style.cursor = "grabbing"
+
+          // }
         }
       }
-      if (1)
-        // $box.addEventListener('mousedown', function (e) {
-        //   cancelClick = setTimeout(dontClick, 500, e, this)
-        // })
-        $box.addEventListener('mousedown', selectHandler)
+      $box.addEventListener('mousedown', selectHandler)
 
       function selectHandler(e) {
         cancelClick = setTimeout(dontClick, 500, e, this)
       }
 
       function dontClick(e, elem) {
-
         clickMode = false
         mousedownHandler(e, elem)
       }
 
-      function mousedownHandler(e, elem) {
-        console.log('mousedown clickMode', clickMode)
-        if (clickMode === false) {
-          console.log('mousedown', elem.innerHTML)
-
-          if (boxIsOccupied(elem)) {
-
-            resetTransform()
-
-            $boxv.innerHTML = elem.innerHTML
-            elem.innerHTML = ''
-            document.body.style.cursor = "grabbing"
-            selectedPiece = elem  // note that selectedPiece is  erased. $boxv contains the piece. use $boxv when checking color
-          }
-          else document.body.style.cursor = "default"
-        } else {
-          console.log('do nothing')
-        }
-
+      function pickPiece(elem) {
+        $boxv.innerHTML = elem.innerHTML
+        selectedPiece = elem  // note that selectedPiece is  erased. $boxv contains the piece. use $boxv when checking color
+        selectedPiece.classList.add('currentSelected')
       }
-      if (1)
-        $box.addEventListener('mouseup', mouseupHandler)
+
+      function placeVirtualPiece(elem) {
+        const rect = elem.getBoundingClientRect()
+        // console.log(pageXOffset, pageYOffset, rect.top, rect.left)
+        $boxv.style.top = pageYOffset + rect.top + "px"
+        $boxv.style.left = pageXOffset + rect.left + "px"
+      }
+
+      function capturePiece(selectedPiece, destinationPiece) {
+        //  compare this.innerHTML and $boxv.innerHTML. if different color, eat. otherwise, do nothing
+
+        const source = checkColor(selectedPiece)
+        const target = checkColor(destinationPiece)
+        if (source !== target) return true
+        else return false
+      }
+
+      function mousedownHandler(e, elem) {
+
+        console.log('mousedown', elem.innerHTML)
+
+        if (boxIsOccupied(elem)) {
+
+          resetTransform()
+          pickPiece(elem)
+        }
+      }
+
+      // selectedPiece, $boxv, this, takenPiece, innerHTML
+      $box.addEventListener('mouseup', mouseupHandler)
       function mouseupHandler(e) {
         console.log('mouseup', this.innerHTML)
         clearTimeout(cancelClick)
         if (clickMode === false) { // mouse drag
           if (boxIsOccupied(this)) {
-            document.body.style.cursor = "grab"
-
-            //  compare this.innerHTML and $boxv.innerHTML. if different color, eat. otherwise, do nothing
-            const source = checkColor($boxv)
-            const target = checkColor(this)
-            if (source !== target) { // opponent on box
+            // document.body.style.cursor = "grab"
+            const capture = capturePiece($boxv, this)
+            if (capture) { // if drag and drop on box with opponent on it
               console.log('take prisoner')
               this.innerHTML = $boxv.innerHTML
-              // $boxv.innerHTML = ''
-              const $this = this.getBoundingClientRect()
-              console.log($this.top, $this.left)
-              $boxv.style.top = pageYOffset + $this.top + "px"
-              $boxv.style.left = pageXOffset + $this.left + "px"
+              this.classList.add('occupied')
 
-              document.body.style.cursor = "grab"
+              placeVirtualPiece(this)
+              // document.body.style.cursor = "grab"
+              selectedPiece.classList.remove('occupied')
+              selectedPiece.innerHTML = ''
               selectedPiece = ''
               pick = false
-            } else { // friend on box
+            } else { // if drag and drop on box with own piece on it
               console.log('walk away')
-              // selectedPiece.innerHTML = $boxv.innerHTML
-              // $boxv.innerHTML = ''
-              // selectedPiece = ''
-              const $this = selectedPiece.getBoundingClientRect()
-              console.log($this.top, $this.left)
-              $boxv.style.top = pageYOffset + $this.top + "px"
-              $boxv.style.left = pageXOffset + $this.left + "px"
-              pick = true
+
+              placeVirtualPiece(selectedPiece)
+
               selectedPiece.innerHTML = $boxv.innerHTML // since selectedPiece is already empty when mousedown select on it
-              console.log(selectedPiece.innerHTML)
+
+              pick = true
             }
 
           }
           else { // this.innerHTML === ''
-            this.innerHTML = $boxv.innerHTML
-            // $boxv.innerHTML = ''
-            const $this = this.getBoundingClientRect()
-            console.log($this.top, $this.left)
-            $boxv.style.top = pageYOffset + $this.top + "px"
-            $boxv.style.left = pageXOffset + $this.left + "px"
-            document.body.style.cursor = "grab"
-            selectedPiece = ''
-            piece = false
+            const srect = selectedPiece.getBoundingClientRect()
+            const drect = this.getBoundingClientRect()
+
+            // if drag and drop back on itself
+            if (this.classList.contains('currentSelected')) {
+              // if (srect.top === drect.top && srect.left === drect.left) {
+              this.innerHTML = $boxv.innerHTML
+              this.classList.add('occupied')
+              selectedPiece = this
+              placeVirtualPiece(this)
+              pick = true
+            } else { // if drag and drop on another empty box/square
+              this.innerHTML = $boxv.innerHTML
+              this.classList.add('occupied')
+              placeVirtualPiece(this)
+              // document.body.style.cursor = "grab"
+              selectedPiece.classList.remove('currentSelected')
+              selectedPiece.classList.remove('occupied')
+              selectedPiece.innerHTML = ''
+              selectedPiece = ''
+
+              pick = false
+            }
           }
         }
-        else { // clickMode !== false // click mode
-          clickMode = true
+        else { // clickMode == true
           if (boxIsOccupied(this))
             if (pick === false) {
-              pick = true
               console.log('pick')
-              const $this = this.getBoundingClientRect()
-              console.log($this.top, $this.left)
 
               resetTransform()
+              pickPiece(this)
+              placeVirtualPiece(this)
 
-              console.log(pageXOffset, pageYOffset, $this.top, $this.left)
-              $boxv.style.top = pageYOffset + $this.top + "px"
-              $boxv.style.left = pageXOffset + $this.left + "px"
-              selectedPiece = this
-              console.log('selectedPiece', selectedPiece)
-              $boxv.innerHTML = selectedPiece.innerHTML
+              pick = true
             }
             else {
-              // checkColor take or walk
-              // const sourceColor = checkColor(selectedPiece)
-              const sourceColor = checkColor($boxv)
 
-              const targetColor = checkColor(this)
-              console.log(sourceColor, targetColor)
-              if (sourceColor === targetColor) {
-                console.log('walk/repick')
-                // pick = false
-                // pick = true
-                const $this = this.getBoundingClientRect()
-                console.log($this.top, $this.left)
-                $boxv.style.top = pageYOffset + $this.top + "px"
-                $boxv.style.left = pageXOffset + $this.left + "px"
-                selectedPiece = this
-                $boxv.innerHTML = this.innerHTML
+              const capture = capturePiece($boxv, this)
 
-              } else { // take and place have the same routine
+              if (capture) { // take and place have the same routine
                 console.log('take')
-                pick = false
-
                 glide(this)
-
+                pick = false
+              } else {
+                console.log('walk/repick')
+                selectedPiece.classList.remove('currentSelected')
+                this.classList.add('currentSelected')
+                // placeVirtualPiece(this)
+                selectedPiece = this
+                // selectedPiece.classList.add('currentSelected')
+                placeVirtualPiece(this)
+                $boxv.innerHTML = this.innerHTML
+                pick = true
               }
             }
           else { // targeting empty square
             if (pick === true) {
               console.log('place')
-              pick = false
-
               glide(this)
-
-            } else {
-              console.log('do nothing')
+              pick = false
             }
           }
-
-          console.log('pick', pick)
-
-          clickMode = false
-
         }
         clickMode = true
       }
+
       $box.addEventListener('mouseover', mouseoverHandler)
       function mouseoverHandler(e) {
-        if (!boxIsOccupied(this)) document.body.style.cursor = "default"
-        else document.body.style.cursor = "grab"
+        document.body.style.cursor = "default"
       }
     }
 
@@ -275,8 +294,12 @@ document.addEventListener('DOMContentLoaded', function () {
       $boxv.style.setProperty('--dx', dx)
       $boxv.style.setProperty('--dy', dy)
 
+      selectedPiece.classList.remove('currentSelected')
+      selectedPiece.classList.remove('occupied')
       selectedPiece.innerHTML = ''
+      selectedPiece = ''
       takenPiece = elem
+      takenPiece.classList.add('occupied')
     }
 
     function resetTransform() {
