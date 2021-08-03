@@ -59,6 +59,7 @@
   /* top: 20px; */
   /* left: 20px; */
   opacity: 1;
+  position: relative;
 }
 
 #pieces {
@@ -68,7 +69,7 @@
   display: none;
 }
 
-.box, #boxv {
+.box, #boxv, .piece, .whpiece, .bkpiece {
   font-size: 100px;
   display: inline-flex;
   align-items: center;
@@ -80,6 +81,13 @@
   width: 100px;
   height: 100px;
   border: 1px solid red;
+}
+
+.piece, .whpiece, .bkpiece {
+  /* border: 10px double rgb(53, 9, 53); */
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
 .box.occupied:hover {
@@ -128,4 +136,21 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.piece, .whpiece, .bkpiece {
+  cursor: grab;
+  transition: transform calc(0.2 * 1s);
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.dragging {
+    transition: transform calc(0.0 * 1s);
+    z-index: 1000;
 }
