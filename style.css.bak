@@ -10,73 +10,67 @@
   display: none;
 }
 #layout {
-  /* width: 820px;
-  height: 820px; */
-  width: 95vw;
-  height: 95vw;
+  width: 822px;
 }
 
 #ylabels {
-  width: 5%;
+  width: 20px;
   display: inline-block;
-  height: 95%;
+  /* background: greenyellow; */
+  /* border: 1px solid red; */
+  /* z-index:100; */
+  height: 800px;
   float: left;
-  background:#769656;
 }
 
 .ylabel {
   width: 100%;
   height: 12.5%;
-  font-size: 2.5vw;
-  display:flex;
-  justify-content: center;
-  align-items: center;
-  color: #eeeed2;
+  /* border: 1px solid blue; */
+  font-size: 10px;
 }
 
 #xlabels{
-  width: 95%;
+  width: 802px;
+  display: inline-block;
+  /* background: greenyellow; */
+  /* border: 1px solid red; */
   z-index:100;
-  height: 5%;
-  float:left;
-  background:#769656;
-  display: inline-flex;
+  height: 20px;
+  float: right;
 }
 
 .xlabel {
+  display: inline-block;
   width: 12.5%;
-  font-size: 2.5vw;
-  color: #eeeed2;
-  display:flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#corner {
-  width: 5%;
-  height: 5%;
-  background:#769656;
-  float:left;
+  /* height: 10px; */
+  /* border: 1px solid blue; */
+  font-size: 10px;
 }
 
 #board {
   float:left;
   display: inline-block;
-  width: 95%;
-  height: 95%;
+  border: 1px solid blue;
+  width: 802px;
+  /* width: 100%; */
+  /* min-height: 500px; */
+  /* position: absolute; */
+  /* top: 20px; */
+  /* left: 20px; */
   opacity: 1;
   position: relative;
 }
 
 #pieces {
-  /* border: 1px solid blue; */
-  width: 800px;
-  min-height: 800px;
+  border: 1px solid blue;
+  width: 802px;
+  min-height: 802px;
   display: none;
 }
 
-.box, .piece, .whpiece, .bkpiece {
-  font-size: 12.5vw;
+.box, #boxv, .piece, .whpiece, .bkpiece {
+  font-size: 100px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -84,9 +78,9 @@
   /* font-size:  */
   float: left;
   pointer-events: auto;
-  width: 12.5%;
-  height: 12.5%;
-  /* border: 1px solid red; */
+  width: 100px;
+  height: 100px;
+  border: 1px solid red;
 }
 
 .box {
@@ -95,9 +89,9 @@
 }
 
 #currentSquare, #nextSquare {
-  width: 12.5%;
-  height: 12.5%;
-  /* border: 4px dashed violet; */
+  width: 100px;
+  height: 100px;
+  border: 4px dashed violet;
   /* background-color:#f6f668; #bbca2b */
   pointer-events: none;
   /* display: none; */
@@ -132,6 +126,11 @@
   cursor: grabbing;
 }
 
+#boxv:active, #boxv:hover, #boxv:focus {
+  pointer-events: all;
+  cursor: grabbing;
+}
+
 .whitebox {
   background: #eeeed2;
 }
@@ -140,14 +139,32 @@
   background: #769656;
 }
 
-/* .noselect {
+#boxv {
+  width: 100px;
+  height: 100px;
+  border: 4px dashed violet;
+  pointer-events: none;
+  /* display: none; */
+  position: absolute;
+  left: 900px;
+   cursor: grabbing;
+}
+
+.movepiece {
+  transform: translate(calc(var(--dx) *  1px), calc(var(--dy) * 1px));
+  transition: transform calc(var(--dt) * 1s);
+  /* transition: transform (calc(var(--dt))); */
+  /* transition: transform var(calc(--dt)*3); */
+}
+
+.noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-} */
+}
 
 .piece, .whpiece, .bkpiece {
   cursor: grab;
@@ -163,47 +180,5 @@
 
 .dragging {
     transition: transform calc(0.0 * 1s);
-    z-index: 2;
-}
-
-.disabled {
-  display: inline-flex;
-  transform: translateY(10vw);
-}
-
-.hint {
-  padding: 4.2%;
-  background-clip: content-box;
-  background-color: rgba(0,0,0,.1);
-    /* background-color: rgba(0, 0, 0, 0.411); */
-
-  border-radius: 50%;
-  pointer-events: none;
-  box-sizing: border-box;
-  width: 12.5%;
-  height: 12.5%;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  cursor: grabbing;
-  z-index: -1;
-}
-
-.capture-hint {
-	border: 5px solid rgba(0,0,0,.1);
-}
-
-.capture-hint {
-	background-clip: content-box;
-	border-radius: 50%;
-	box-sizing: border-box;
-	/* pointer-events: none; */
-}
-
-.capture-hint, .highlight {
-	height: 12.5%;
-	left: 0;
-	position: absolute;
-	top: 0;
-	width: 12.5%;
+    z-index: 1000;
 }
