@@ -17,7 +17,15 @@ let $layout
 let $box0
 let dw, dh
 
-let _At, _As
+let $undo, $redo
+let undoHistory = []
+let redoHistory = []
+let undoRedo = 0 // 0 - undo, 1 - redo
+// let eventListeners = []
+// let bc
+
+let $moves
+let moveNumber = 1
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -110,6 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
     bk: [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]],
   }
 
+  // const notation = { "s-00": "a8", "s-10": "b8", "s-20": "c8", "s-30": "d8", "s-40": "e8", "s-50": "f8", "s-60": "g8", "s-70": "h8", "s-01": "a7", "s-11": "b7", "s-21": "c7", "s-31": "d7", "s-41": "e7", "s-51": "f7", "s-61": "g7", "s-71": "h7", "s-00": "a6", "s-10": "b6", "s-20": "c6", "s-30": "d6", "s-40": "e6", "s-50": "f6", "s-60": "g6", "s-70": "h6" }
+
 
   for (let i = 0; i < 16; i++) {
     const $divp = document.createElement('div')
@@ -143,6 +153,8 @@ document.addEventListener('DOMContentLoaded', function () {
   dh = $box0.offsetHeight
   const boardRect = $board.getBoundingClientRect()
 
+  $moves = document.querySelector('#moves')
+
   let cancelMouseclick
 
   // https://css-tricks.com/working-with-javascript-media-queries/
@@ -161,6 +173,27 @@ document.addEventListener('DOMContentLoaded', function () {
   // Add a listener for when the window resizes
   window.addEventListener('resize', checkMediaQuery);
 
+  // initialize undo history
+  saveHistory()
+
+  $undo = document.querySelector('#undo')
+  $undo.addEventListener('click', function () {
+    undo()
+  })
+
+  $redo = document.querySelector('#redo')
+  $redo.addEventListener('click', function () {
+    redo()
+  })
+
+  // initialize undoHistory
+  // savedHistory()
+
+  // bc = $board.addEventListener('click', function () {
+  //   console.log('click board')
+  // })
+
+  // eventListeners.push(bc)
 
   // cannot be with $piece mouseup 
   $board.addEventListener('mouseup', function (e) {
@@ -174,8 +207,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if ([...document.querySelectorAll('.hint')].find((e) => e.classList.item(1) === sXY)) {
 
-        console.log('don\'t update currentpiece')
-        updateCurrentPiece(sXY)
+        // occupy empty square
+        updateCurrentPiece(sXY, null)
         setNextSquare(sXY)
         click = true
         pick = false
@@ -234,14 +267,19 @@ document.addEventListener('DOMContentLoaded', function () {
           if ([...document.querySelectorAll('.capture-hint')].find((e) => e.classList.item(1) === this.classList.item(2))) {
             console.log('capture...')
             document.querySelectorAll('.hint, .capture-hint').forEach((e) => e.remove())
-            updateCurrentPiece(sXY)
+            updateCurrentPiece(sXY, this)
             setNextSquare(sXY)
-            removePiece(this)
+            // removePiece(this)
 
             console.log('exchange')
             pick = false
+          } else {
+            console.log('what about repick?')
+            selectPiece(this)
+            if (currentPiece !== undefined) showHints(currentPiece)
           }
         } else {
+          console.log('first pick')
           selectPiece(this)
           if (currentPiece !== undefined) showHints(currentPiece)
         }
@@ -257,9 +295,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if ([...document.querySelectorAll('.capture-hint')].find((e) => e.classList.item(1) === sXY)) {
           console.log('capture...')
           document.querySelectorAll('.hint, .capture-hint').forEach((e) => e.remove())
-          updateCurrentPiece(sXY)
+          updateCurrentPiece(sXY, targetPiece)
           setNextSquare(sXY)
-          removePiece(targetPiece) // remove .capture-hint
+          // removePiece(targetPiece) // remove .capture-hint
 
           console.log('exchange')
           pick = false
@@ -267,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if ([...document.querySelectorAll('.hint')].find((e) => e.classList.item(1) === sXY)) {
           console.log('capture...2')
           document.querySelectorAll('.hint, .capture-hint').forEach((e) => e.remove())
-          updateCurrentPiece(sXY)
+          updateCurrentPiece(sXY, null)
           setNextSquare(sXY)
 
           console.log('exchange')
@@ -309,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return [sXY, dX, dY]
   }
 
-  function updateCurrentPiece(sXY) {
+  function updateCurrentPiece(sXY, targetPiece) {
     const currentPieceColor = currentPiece.classList.item(0)
     const currentPieceType = currentPiece.classList.item(1)
 
@@ -318,14 +356,18 @@ document.addEventListener('DOMContentLoaded', function () {
     currentPiece.classList.add(currentPieceType)
     currentPiece.classList.add(sXY)
 
+    if (targetPiece !== null) removePiece(targetPiece)
+
     switchTurn()
+
+    saveHistory()
+    writeMoves(currentPiece, targetPiece)
   }
 
   function showHints(currentPiece) {
-    // need to clean up code i.e split into two functions (1) hint div creation (2) exchange. note that once the return statements above are executed, the following routine will be skipped. This routine is also executed when a piece is picked.
-    currentPieceColor = currentPiece.classList.item(0)
-    currentPieceType = currentPiece.classList.item(1)
-    currentPiecePosition = currentPiece.classList.item(2)
+    const currentPieceColor = currentPiece.classList.item(0)
+    const currentPieceType = currentPiece.classList.item(1)
+    const currentPiecePosition = currentPiece.classList.item(2)
     const currPos = { x: 0, y: 0 }
     currPos.x = parseInt(currentPiecePosition[2])
     currPos.y = parseInt(currentPiecePosition[3])
@@ -335,13 +377,6 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('showHints', currentPieceType)
 
     let skip1 = false
-    let skip2 = false
-    let skip3 = false
-    let skip4 = false
-    let skip5 = false
-    let skip6 = false
-    let skip7 = false
-    let skip8 = false
 
     moveRules[currentPieceType].forEach((i, idx) => {
       const newPos = { x: 0, y: 0 }
@@ -377,144 +412,34 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
 
-        if (idx == 7 || idx == 14 || idx == 21 || idx == 28 || idx == 35 || idx == 42 || idx == 49 || idx == 56) {
+        if ((idx % 7) == 0) {
           skip1 = false
-          skip2 = false
-          skip3 = false
-          skip4 = false
-          skip5 = false
-          skip6 = false
-          skip7 = false
-          skip8 = false
         }
 
-        if (currentPieceType === 'wr' || currentPieceType === 'br' || currentPieceType === 'wb' || currentPieceType === 'bb') {
+        if (currentPieceType === 'wr' || currentPieceType === 'br' || currentPieceType === 'wb' || currentPieceType === 'bb' || currentPieceType === 'wq' || currentPieceType === 'bq') {
           const neighborSquare = document.querySelector('.' + sXY)
 
-          skip = false
-          if (newPos.x < currPos.x) { // [-1,0] to [-7,0]
+          // skip = false
+
+          // if (newPos.x < currPos.x || newPos.x > currPos.x || newPos.y < currPos.y || newPos.y > currPos.y) { // [-1,0] to [-7,0]
+          // }
+
+          if (newPos.x !== currPos.x || newPos.y !== currPos.y) { // [-1,0] to [-7,0]
             if (neighborSquare) {
               const neighborSquareColor = neighborSquare.classList.item(0)
               if (currentPieceColor !== neighborSquareColor && !skip1) {
-                createDivCaptureHint(sXY)
+                const $div = createDivCaptureHint(sXY)
+                checkKing(currentPiece, neighborSquare, $div)
               }
 
               skip1 = true
             }
-          } else if (newPos.x > currPos.x) { // [1,0] to [7,0]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip2) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip2 = true
-            }
-          } else if (newPos.y < currPos.y) { // [0,-1] to [0,-7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip3) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip3 = true
-            }
-          } else if (newPos.y > currPos.y) { // [0,1] to [0,7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip4) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip4 = true
-            }
           }
 
         }
 
-        if (currentPieceType === 'wq' || currentPieceType === 'bq') {
-          const neighborSquare = document.querySelector('.' + sXY)
-
-          skip = false
-          if (newPos.x < currPos.x && newPos.y === currPos.y) { // [-1,0] to [-7,0]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip1) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip1 = true
-            }
-          } else if (newPos.x > currPos.x && newPos.y === currPos.y) { // [1,0] to [7,0]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip2) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip2 = true
-            }
-          } else if (newPos.x === currPos.x && newPos.y < currPos.y) { // [0,-1] to [0,-7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip3) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip3 = true
-            }
-          } else if (newPos.x === currPos.x && newPos.y > currPos.y) { // [0,1] to [0,7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip4) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip4 = true
-            }
-          }
-          if (newPos.x < currPos.x && newPos.y < currPos.y) { // [-1,0] to [-7,0]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip1) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip5 = true
-            }
-          } else if (newPos.x > currPos.x && newPos.y > currPos.y) { // [1,0] to [7,0]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip2) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip6 = true
-            }
-          } else if (newPos.x < currPos.x && newPos.y > currPos.y) { // [0,-1] to [0,-7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip3) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip7 = true
-            }
-          } else if (newPos.x > currPos.x && newPos.y < currPos.y) { // [0,1] to [0,7]
-            if (neighborSquare) {
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              if (currentPieceColor !== neighborSquareColor && !skip4) {
-                createDivCaptureHint(sXY)
-              }
-
-              skip8 = true
-            }
-          }
-
-        }
-
-        if (!skip && !skip1 && !skip2 && !skip3 && !skip4 && !skip5 && !skip6 && !skip7 && !skip8) {
-          console.log(skip, skip1, skip2, skip3, skip4)
+        if (!skip && !skip1) {
+          // console.log(skip, skip1, skip2, skip3, skip4)
 
           const $div = document.createElement('div')
           $board.appendChild($div)
@@ -525,7 +450,9 @@ document.addEventListener('DOMContentLoaded', function () {
           } else {
 
             const neighborSquareColor = neighborSquare.classList.item(0)
+            console.log(currentPieceColor, neighborSquareColor)
             if (currentPieceColor !== neighborSquareColor) {
+              checkKing(currentPiece, neighborSquare, $div)
               $div.classList.add('capture-hint', sXY)
 
             }
@@ -539,10 +466,117 @@ document.addEventListener('DOMContentLoaded', function () {
 
   }
 
+  function checkKing(currentPiece, neighborSquare, $div) {
+    const currentPieceColor = currentPiece.classList.item(0)
+    const neighborSquareColor = neighborSquare.classList.item(0)
+    if (currentPieceColor === "whpiece" && neighborSquare.classList.contains("bk")) {
+      console.log('check')
+      if ($div !== null) $div.classList.add('check')
+    }
+    if (currentPieceColor === "bkpiece" && neighborSquare.classList.contains("wk")) {
+      console.log('check')
+      if ($div !== null) $div.classList.add('check')
+    }
+  }
+
+  function mapNotation(currentPiece, targetPiece) {
+    const p = currentPiece.classList.item(1)
+    const sXY = currentPiece.classList.item(2)
+    const x = { 0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h" }
+    const y = { 0: "8", 1: "7", 2: "6", 3: "5", 4: "4", 5: "3", 6: "2", 7: "1" }
+
+    const e = targetPiece !== null ? 'x' : ''
+
+    return p[1].toUpperCase() + e + x[sXY[2]] + y[sXY[3]]
+  }
+
+  function writeMoves(currentPiece, targetPiece) {
+    let moveList = $moves.innerHTML
+    const sXY = currentPiece.classList.item(2)
+    // console.log(sXY, notation['' + sXY])
+    if (currentPiece.classList.item(0) === 'whpiece') {
+      moveList = moveList + '<br>' + moveNumber + '.' + mapNotation(currentPiece, targetPiece)
+    } else {
+      moveList = moveList + ' - ' + mapNotation(currentPiece, targetPiece)
+      moveNumber++
+    }
+    $moves.innerHTML = moveList
+    console.log('write moves')
+  }
+
+  function saveHistory() {
+    const $boardClone = $board.cloneNode(true)
+    const $movesClone = $moves.cloneNode(true)
+    undoHistory.push([$boardClone, $movesClone])
+    console.log('save history')
+    // need to save event listeners too.....
+  }
+
+  function undo() {
+    let $undoItem
+    if (undoHistory.length > 0) {
+      $undoItem = undoHistory.pop()
+      // if (undoRedo === 1) $undoItem = undoHistory.pop()
+      // undoRedo = 0
+      if ($undoItem !== null || $undoItem !== undefined) {
+        const $prevBoard = $undoItem[0]
+        const $prevMoves = $undoItem[1]
+
+        const $board = document.querySelector('#board')
+
+        // $board.children[64-95]
+        if ($prevBoard) {
+          const $prevBoardClone = $prevBoard.cloneNode(true)
+          const $movesClone = $moves.cloneNode(true)
+          redoHistory.push([$prevBoardClone, $movesClone])
+
+          for (let i = 64; i < 96; i++) {
+            $board.children[i].classList.remove(...$board.children[i].classList)
+            $board.children[i].classList.add(...$prevBoard.children[i].classList)
+          }
+        }
+
+        if ($prevMoves !== null) $moves.innerHTML = $prevMoves.innerHTML
+        // switchTurn()
+      }
+    }
+  }
+
+  function redo() {
+    let $redoItem
+    if (redoHistory.length > 0) {
+      $redoItem = redoHistory.pop()
+      // if (undoRedo === 0) $undoItem = undoHistory.pop()
+      // undoRedo = 1
+      if ($redoItem !== null || $undoItem !== undefined) {
+        const $nextBoard = $redoItem[0]
+        const $nextMoves = $redoItem[1]
+
+        const $board = document.querySelector('#board')
+
+        // $board.children[64-95]
+        if ($nextBoard) {
+          const $nextBoardClone = $nextBoard.cloneNode(true)
+          const $movesClone = $moves.cloneNode(true)
+          undoHistory.push([$nextBoardClone, $movesClone])
+
+          for (let i = 64; i < 96; i++) {
+            $board.children[i].classList.remove(...$board.children[i].classList)
+            $board.children[i].classList.add(...$nextBoard.children[i].classList)
+          }
+        }
+
+        if ($nextMoves !== null) $moves.innerHTML = $nextMoves.innerHTML
+        // switchTurn()
+      }
+    }
+  }
+
   function createDivCaptureHint(sXY) {
     const $div = document.createElement('div')
     $board.appendChild($div)
     $div.classList.add('capture-hint', sXY)
+    return $div
   }
 
   function range(start, end) {
@@ -564,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function switchTurn() {
     console.log(turn === 'whpiece' ? "black's turn" : "white's turn")
     turn = turn === 'whpiece' ? 'bkpiece' : 'whpiece'
+    // savedHistory()
   }
 
   function selectPiece(elem) {
