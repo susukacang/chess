@@ -125,6 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
     bk: [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-2, 0], [2, 0]],
   }
 
+  const checkRules = {}
+
   // const notation = { "s-00": "a8", "s-10": "b8", "s-20": "c8", "s-30": "d8", "s-40": "e8", "s-50": "f8", "s-60": "g8", "s-70": "h8", "s-01": "a7", "s-11": "b7", "s-21": "c7", "s-31": "d7", "s-41": "e7", "s-51": "f7", "s-61": "g7", "s-71": "h7", "s-00": "a6", "s-10": "b6", "s-20": "c6", "s-30": "d6", "s-40": "e6", "s-50": "f6", "s-60": "g6", "s-70": "h6" }
 
 
@@ -141,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
   //   $board.appendChild($divp)
   // }
 
-  const ibkList = [0, 4, 7]
+  const ibkList = [0, 2, 4, 5, 7]
 
   ibkList.forEach(i => {
     console.log(i)
@@ -151,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $board.appendChild($divp)
   })
 
-  const iwhList = [24, 28, 31]
+  const iwhList = [24, 26, 28, 29, 31]
 
   iwhList.forEach(i => {
     console.log(i)
@@ -375,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return [sXY, dX, dY]
   }
 
+  // sXY is the position the currentPiece is going to. targetPiece is the piece occupying that position
   function movePiece(sXY, targetPiece) {
     console.log('movePiece')
     const currentPieceColor = currentPiece.classList.item(0)
@@ -487,10 +490,11 @@ document.addEventListener('DOMContentLoaded', function () {
     currPos.y = parseInt(currentPiecePosition[3])
 
     // Show hint
-    document.querySelectorAll('.hint, .capture-hint').forEach((e) => e.remove())
+    document.querySelectorAll('.hint, .capture-hint, .threat').forEach((e) => e.remove())
     console.log('showHints', currentPieceType)
 
     let skip1 = false
+    let safe = true
 
     moveRules[currentPieceType].forEach((i, idx) => {
       const newPos = { x: 0, y: 0 }
@@ -572,21 +576,21 @@ document.addEventListener('DOMContentLoaded', function () {
           // conditions where castling not allowed i.e. king, rook has moved, in line of fire, king checked
           // console.log('currPos.y', currPos.y)
           // if (idx > 7) skip1 = true
-          console.log('skip', skip, 'skip1', skip1, 'skip2bl', skip2bl, 'skip2br', skip2br)
-          console.log('castling.bk.l', castling.bk.l, 'castling.bk.r', castling.bk.r)
+          // console.log('skip', skip, 'skip1', skip1, 'skip2bl', skip2bl, 'skip2br', skip2br)
+          // console.log('castling.bk.l', castling.bk.l, 'castling.bk.r', castling.bk.r)
           // skip2 = false (can castle, show hint); skip1 = true (cannot castle, don't show hint)
           if (!skip2bl && !skip2br) {
             if (castling.bk.l === 1)
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2bl = true
-                console.log('1b', castling.bk.l, idx)
+                // console.log('1b', castling.bk.l, idx)
               }
             if (castling.bk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2br = true
-                console.log('2b', castling.bk.r, idx)
+                // console.log('2b', castling.bk.r, idx)
               }
           }
           if (!skip2bl) {
@@ -594,14 +598,14 @@ document.addEventListener('DOMContentLoaded', function () {
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2bl = true
-                console.log('3b')
+                // console.log('3b')
               }
           } else if (!skip2br) {
             if (castling.bk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2br = true
-                console.log('4b')
+                // console.log('4b')
               }
           }
           else {
@@ -612,13 +616,13 @@ document.addEventListener('DOMContentLoaded', function () {
               skip1 = true
               skip2bl = true
               // skip2br = true
-              console.log('5b')
+              // console.log('5b')
             }
             if (idx === 9) { // cannot move diagonal if no enemy to take
-              // skip1 = true
+              skip1 = true
               // skip2bl = true
               skip2br = true
-              console.log('6b')
+              // console.log('6b')
             }
           }
         }
@@ -627,21 +631,21 @@ document.addEventListener('DOMContentLoaded', function () {
           // conditions where castling not allowed i.e. king, rook has moved, in line of fire, king checked
           // console.log('currPos.y', currPos.y)
           // if (idx > 7) skip1 = true
-          console.log('skip', skip, 'skip1', skip1, 'skip2wl', skip2wl, 'skip2wr', skip2wr)
-          console.log('castling.wk.l', castling.wk.l, 'castling.wk.r', castling.wk.r)
+          // console.log('skip', skip, 'skip1', skip1, 'skip2wl', skip2wl, 'skip2wr', skip2wr)
+          // console.log('castling.wk.l', castling.wk.l, 'castling.wk.r', castling.wk.r)
           // skip2 = false (can castle, show hint); skip1 = true (cannot castle, don't show hint)
           if (!skip2wl && !skip2wr) {
             if (castling.wk.l === 1)
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2wl = true
-                console.log('1', castling.wk.l, idx)
+                // console.log('1', castling.wk.l, idx)
               }
             if (castling.wk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2wr = true
-                console.log('2', castling.wk.r, idx)
+                // console.log('2', castling.wk.r, idx)
               }
           }
           if (!skip2wl) {
@@ -649,34 +653,48 @@ document.addEventListener('DOMContentLoaded', function () {
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2wl = true
-                console.log('3')
+                // console.log('3')
               }
           } else if (!skip2wr) {
             if (castling.wk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
                 skip2wr = true
-                console.log('4')
+                // console.log('4')
               }
           }
           else {
 
-            console.log('idx', idx)
+            // console.log('idx', idx)
 
             if (idx === 8) { // cannot move diagonal if no enemy to take
               skip1 = true
               skip2wl = true
               // skip2wr = true
-              console.log('5')
+              // console.log('5')
             }
             if (idx === 9) { // cannot move diagonal if no enemy to take
-              // skip1 = true
+              skip1 = true
               // skip2wl = true
               skip2wr = true
-              console.log('6')
+              // console.log('6')
             }
           }
         }
+
+
+        // check if castling squares are not threaten
+        if (0)
+          if (currentPieceType === 'wk' || currentPieceType === 'bk') {
+            safe = isSquareSafe(sXY)
+            // console.log('safe',safe)
+            if (!safe) {
+              console.log(sXY, 'square not safe')
+              // const $div = document.querySelector('.' + sXY)
+              // console.log($div.classList.value)
+            }
+          }
+
 
         // !skip2wl and wk required to hide hint for castling if not valid anymore
         if (currentPieceType === 'bk') {
@@ -687,19 +705,21 @@ document.addEventListener('DOMContentLoaded', function () {
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
+            if (safe || 1)
+              if (neighborSquare === null) {
+                safe = isSquareSafe(sXY)
+                if (safe) $div.classList.add('hint', sXY)
+                // console.log('add hint', idx)
+              } else {
 
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
+                const neighborSquareColor = neighborSquare.classList.item(0)
+                // console.log(currentPieceColor, neighborSquareColor)
+                if (currentPieceColor !== neighborSquareColor) {
+                  checkKing(currentPiece, neighborSquare, $div)
+                  $div.classList.add('capture-hint', sXY)
 
+                }
               }
-            }
           }
         } else if (currentPieceType === 'wk') {
           if (!skip && !skip1 && !(skip2wl && idx === 8) && !(skip2wr && idx === 9)) {
@@ -709,19 +729,21 @@ document.addEventListener('DOMContentLoaded', function () {
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
+            if (safe || 1)
+              if (neighborSquare === null) {
+                safe = isSquareSafe(sXY)
+                if (safe) $div.classList.add('hint', sXY)
+                // console.log('add hint', idx)
+              } else {
 
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
+                const neighborSquareColor = neighborSquare.classList.item(0)
+                // console.log(currentPieceColor, neighborSquareColor)
+                if (currentPieceColor !== neighborSquareColor) {
+                  checkKing(currentPiece, neighborSquare, $div)
+                  $div.classList.add('capture-hint', sXY)
 
+                }
               }
-            }
           }
         }
         else {
@@ -732,22 +754,25 @@ document.addEventListener('DOMContentLoaded', function () {
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
+            if (safe || 1)
+              if (neighborSquare === null) {
+                safe = isSquareSafe(sXY)
+                if (safe) $div.classList.add('hint', sXY)
+                // console.log('add hint', idx)
+              } else {
 
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
+                const neighborSquareColor = neighborSquare.classList.item(0)
+                // console.log(currentPieceColor, neighborSquareColor)
+                if (currentPieceColor !== neighborSquareColor) {
+                  checkKing(currentPiece, neighborSquare, $div)
+                  $div.classList.add('capture-hint', sXY)
 
+                }
               }
-            }
 
           }
         }
+
       }
     })
 
@@ -768,27 +793,138 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function isSquareSafe(currentPiece) {
-    console.log('safe')
+  // Check if square is safe to thread over during castling
+
+  function isSquareSafe(pos_sXY) {
+    // sXY of possible moves of king
+    let safe = true
+    let skip = false
+    // console.log('is square safe?')
 
     const currentPieceColor = currentPiece.classList.item(0)
-    const currentPieceType = currentPiece.classList.item(1)
-    const currentPiecePosition = currentPiece.classList.item(2)
+    const enemyPieceColor = currentPieceColor === 'whpiece' ? 'bkpiece' : 'whpiece'
+
+    // const currentPieceType = currentPiece.classList.item(1)
+    // const currentPiecePosition = currentPiece.classList.item(2)
     const currPos = { x: 0, y: 0 }
-    currPos.x = parseInt(currentPiecePosition[2])
-    currPos.y = parseInt(currentPiecePosition[3])
+    currPos.x = parseInt(pos_sXY[2])
+    currPos.y = parseInt(pos_sXY[3])
 
-    moveRules[currentPieceType].forEach((i, idx) => {
-      const newPos = { x: 0, y: 0 }
-      newPos.x = currPos.x + i[0]
-      newPos.y = currPos.y + i[1]
-      const sXY = 's-' + newPos.x + newPos.y
+// for rook
+    checkList = ['wr'] // 'wn'
+    checkList.forEach((currentPieceType) => {
+      console.log('currentPieceType', currentPieceType)
+      moveRules[currentPieceType].forEach((i, idx) => {
+        const newPos = { x: 0, y: 0 }
+        newPos.x = currPos.x + i[0]
+        newPos.y = currPos.y + i[1]
+        // sXY for neighborSquareColor i.e. in line of attack by rook, knight, bishop
+        const sXY = 's-' + newPos.x + newPos.y
+        console.log(idx, i, sXY, skip, safe)
+        if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
+          // console.log(idx, i, sXY, skip, safe)
 
-      if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
+          if ((idx % 7) == 0) {
+            // safe = true
+            skip = false
+            console.log('reset skip')
+          }
 
+          const elem = document.querySelector('.' + sXY)
+          if (elem !== null) {
+            if (!elem.classList.contains('hint')) {
+              // if (!elem.classList.contains('wk')) {
+              if (elem.classList.contains(enemyPieceColor) && !skip) {
+                // check if enemy piece has the capability e.g. rook can only move straight, bishop can only move diagonal
+                if (1) {
+                  // simplify later
+                  let possibleEnemy = false
 
-      }
+                  if (elem.classList.item(1) === 'wr' || elem.classList.item(1) === 'br') possibleEnemy = true
+
+                  console.log('possibleEnemy', possibleEnemy)
+                  if (possibleEnemy) {
+                    console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
+                    // console.log(elem.classList.contains('hint'))
+                    safe = false
+                    skip = true
+                    const $div = document.createElement('div')
+                    $board.appendChild($div)
+                    $div.classList.add('threat', sXY)
+                  }
+                }
+              } else if (elem.classList.contains(currentPieceColor)) {
+                console.log('stop finding in path')
+                skip = true
+              }
+
+              // }
+            }
+          } else { // unoccupied square
+            // skip = false
+          }
+        }
+      })
     })
+
+// for bishop
+    checkList = ['wb'] // 'wn'
+    checkList.forEach((currentPieceType) => {
+      console.log('currentPieceType', currentPieceType)
+      moveRules[currentPieceType].forEach((i, idx) => {
+        const newPos = { x: 0, y: 0 }
+        newPos.x = currPos.x + i[0]
+        newPos.y = currPos.y + i[1]
+        // sXY for neighborSquareColor i.e. in line of attack by rook, knight, bishop
+        const sXY = 's-' + newPos.x + newPos.y
+        console.log(idx, i, sXY, skip, safe)
+        if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
+          // console.log(idx, i, sXY, skip, safe)
+
+          if ((idx % 7) == 0) {
+            // safe = true
+            skip = false
+            console.log('reset skip')
+          }
+
+          const elem = document.querySelector('.' + sXY)
+          if (elem !== null) {
+            if (!elem.classList.contains('hint')) {
+              // if (!elem.classList.contains('wk')) {
+              if (elem.classList.contains(enemyPieceColor) && !skip) {
+                // check if enemy piece has the capability e.g. rook can only move straight, bishop can only move diagonal
+                if (1) {
+                  // simplify later
+                  let possibleEnemy = false
+
+                  if (elem.classList.item(1) === 'wb' || elem.classList.item(1) === 'bb') possibleEnemy = true
+
+                  console.log('possibleEnemy', possibleEnemy)
+                  if (possibleEnemy) {
+                    console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
+                    // console.log(elem.classList.contains('hint'))
+                    safe = false
+                    skip = true
+                    const $div = document.createElement('div')
+                    $board.appendChild($div)
+                    $div.classList.add('threat', sXY)
+                  }
+                }
+              } else if (elem.classList.contains(currentPieceColor)) {
+                console.log('stop finding in path')
+                skip = true
+              }
+
+              // }
+            }
+          } else { // unoccupied square
+            // skip = false
+          }
+        }
+      })
+    })
+
+    return safe
   }
 
   function mapNotation(currentPiece, targetPiece) {

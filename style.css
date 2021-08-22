@@ -185,8 +185,8 @@
 .hint {
   padding: 4.2%;
   background-clip: content-box;
-  background-color: rgba(0,0,0,.1);
-    /* background-color: rgba(0, 0, 0, 0.411); */
+  /* background-color: rgba(0,0,0,.1); */
+    background-color: rgba(0, 0, 0, 0.411);
 
   border-radius: 50%;
   pointer-events: none;
@@ -200,23 +200,27 @@
   z-index: -1;
 }
 
-.capture-hint {
+.capture-hint, .threat {
 	border: 5px solid rgba(0,0,0,.1);
 }
 
-.capture-hint {
+.capture-hint, .threat {
 	background-clip: content-box;
 	border-radius: 50%;
 	box-sizing: border-box;
 	/* pointer-events: none; */
 }
 
-.capture-hint, .highlight {
+.capture-hint, .highlight, .threat {
 	height: 12.5%;
 	left: 0;
 	position: absolute;
 	top: 0;
 	width: 12.5%;
+}
+
+.threat {
+  border: 5px solid rgba(226, 44, 211, 0.74);
 }
 
 .check {
