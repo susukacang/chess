@@ -29,10 +29,8 @@ let moveNumber = 1
 
 let castling = { "wk": { "l": 0, "r": 0 }, "bk": { "l": 0, "r": 0 } }
 
-let skip2wl = false
-let skip2wr = false
-let skip2bl = false
-let skip2br = false
+let skip2l = false
+let skip2r = false
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -141,19 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
   //   $board.appendChild($divp)
   // }
 
-  const ibkList = [0, 4, 7]
+  const iList = [24, 28, 31]
 
-  ibkList.forEach(i => {
-    console.log(i)
-    const $divp = document.createElement('div')
-    $divp.classList.add('bkpiece', t[i], s[i])
-    $divp.innerHTML = p[i]
-    $board.appendChild($divp)
-  })
-
-  const iwhList = [24, 28, 31]
-
-  iwhList.forEach(i => {
+  iList.forEach(i => {
     console.log(i)
     const $divp = document.createElement('div')
     $divp.classList.add('whpiece', t[i], s[i])
@@ -384,39 +372,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCurrentPiece(sXY, targetPiece)
     console.log('first updatecurrentpiece')
     console.log(castling.wk.r)
-
-    // right side castling
-    if (currentPieceType === 'bk' && currentPieceXY === 's-40' && sXY === 's-60') {
-      if (castling.bk.r === 0) {
-        // move rook
-        console.log('castling')
-        currentPiece = document.querySelector('.s-70')  // wr
-        updateCurrentPiece('s-50', null)
-        console.log('right second updatecurrentpiece')
-      }
-    }
-    // left side castling
-    if (currentPieceType === 'bk' && currentPieceXY === 's-40' && sXY === 's-20') {
-      if (castling.bk.l === 0) {
-        // move rook
-        console.log('castling')
-        currentPiece = document.querySelector('.s-00')  // wr
-        updateCurrentPiece('s-30', null)
-        console.log('left second updatecurrentpiece')
-      }
-    }
-    // already move, only one castling allowed
-    if (currentPieceType === 'bk') {
-      castling.bk.r = 1
-      castling.bk.l = 1
-    }
-    if (currentPieceType === 'br' && currentPieceXY === 's-00') {
-      castling.bk.l = 1
-    }
-    if (currentPieceType === 'br' && currentPieceXY === 's-70') {
-      castling.bk.r = 1
-    }
-
     // right side castling
     if (currentPieceType === 'wk' && currentPieceXY === 's-47' && sXY === 's-67') {
       if (castling.wk.r === 0) {
@@ -448,8 +403,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (currentPieceType === 'wr' && currentPieceXY === 's-77') {
       castling.wk.r = 1
     }
-
-    switchTurn()
   }
 
   function updateCurrentPiece(sXY, targetPiece) {
@@ -464,19 +417,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // exchange pieces, replace targetPiece with currentPiece
     if (targetPiece !== null) removePiece(targetPiece)
 
-    // switchTurn()
+    switchTurn()
 
     saveHistory()
     writeMoves(currentPiece, targetPiece)
   }
 
-  // function canCastle(currentPiece) {
-  //   if (currentPiece.classList.item(1) === 'wk') {
+  function canCastle(currentPiece) {
+    if (currentPiece.classList.item(1) === 'wk') {
 
-  //     return false
-  //   }
-  //   return true
-  // }
+      return false
+    }
+    return true
+  }
 
   function showHints(currentPiece) {
     const currentPieceColor = currentPiece.classList.item(0)
@@ -553,200 +506,81 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
 
-        if (castling.wk.l === 1) {
-          skip2wl = true
-        }
-        if (castling.wk.r === 1) {
-          skip2wr = true
-        }
-
-        if (castling.bk.l === 1) {
-          skip2bl = true
-        }
-        if (castling.bk.r === 1) {
-          skip2br = true
-        }
 
         // castling
-        if (currentPieceType === 'bk') {
+        if (currentPieceType === 'wk' || currentPieceType === 'bk') {
           // conditions where castling not allowed i.e. king, rook has moved, in line of fire, king checked
           // console.log('currPos.y', currPos.y)
           // if (idx > 7) skip1 = true
-          console.log('skip', skip, 'skip1', skip1, 'skip2bl', skip2bl, 'skip2br', skip2br)
-          console.log('castling.bk.l', castling.bk.l, 'castling.bk.r', castling.bk.r)
-          // skip2 = false (can castle, show hint); skip1 = true (cannot castle, don't show hint)
-          if (!skip2bl && !skip2br) {
-            if (castling.bk.l === 1)
-              if (idx === 8) { // cannot move diagonal if no enemy to take
-                skip1 = true
-                skip2bl = true
-                console.log('1b', castling.bk.l, idx)
-              }
-            if (castling.bk.r === 1)
-              if (idx === 9) { // cannot move diagonal if no enemy to take
-                skip1 = true
-                skip2br = true
-                console.log('2b', castling.bk.r, idx)
-              }
-          }
-          if (!skip2bl) {
-            if (castling.bk.l === 1)
-              if (idx === 8) { // cannot move diagonal if no enemy to take
-                skip1 = true
-                skip2bl = true
-                console.log('3b')
-              }
-          } else if (!skip2br) {
-            if (castling.bk.r === 1)
-              if (idx === 9) { // cannot move diagonal if no enemy to take
-                skip1 = true
-                skip2br = true
-                console.log('4b')
-              }
-          }
-          else {
-
-            console.log('idx', idx)
-
-            if (idx === 8) { // cannot move diagonal if no enemy to take
-              skip1 = true
-              skip2bl = true
-              // skip2br = true
-              console.log('5b')
-            }
-            if (idx === 9) { // cannot move diagonal if no enemy to take
-              // skip1 = true
-              // skip2bl = true
-              skip2br = true
-              console.log('6b')
-            }
-          }
-        }
-
-        if (currentPieceType === 'wk') {
-          // conditions where castling not allowed i.e. king, rook has moved, in line of fire, king checked
-          // console.log('currPos.y', currPos.y)
-          // if (idx > 7) skip1 = true
-          console.log('skip', skip, 'skip1', skip1, 'skip2wl', skip2wl, 'skip2wr', skip2wr)
+          console.log('skip2l', skip2l, 'skip2r', skip2r )
           console.log('castling.wk.l', castling.wk.l, 'castling.wk.r', castling.wk.r)
           // skip2 = false (can castle, show hint); skip1 = true (cannot castle, don't show hint)
-          if (!skip2wl && !skip2wr) {
+          if (!skip2l && !skip2r) {
             if (castling.wk.l === 1)
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
-                skip2wl = true
-                console.log('1', castling.wk.l, idx)
+                skip2l = true
+                console.log('1')
               }
             if (castling.wk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
-                skip2wr = true
-                console.log('2', castling.wk.r, idx)
+                skip2r = true
+                console.log('2')
               }
-          }
-          if (!skip2wl) {
+          } 
+          if (!skip2l && skip2r) {
             if (castling.wk.l === 1)
               if (idx === 8) { // cannot move diagonal if no enemy to take
                 skip1 = true
-                skip2wl = true
+                skip2l = true
                 console.log('3')
               }
-          } else if (!skip2wr) {
+          } else if (skip2l && !skip2r) {
             if (castling.wk.r === 1)
               if (idx === 9) { // cannot move diagonal if no enemy to take
                 skip1 = true
-                skip2wr = true
+                skip2r = true
                 console.log('4')
               }
           }
-          else {
-
-            console.log('idx', idx)
-
+          if (0) {
+            console.log(idx)
             if (idx === 8) { // cannot move diagonal if no enemy to take
               skip1 = true
-              skip2wl = true
-              // skip2wr = true
+              skip2l = true
+              // skip2r = true
               console.log('5')
             }
             if (idx === 9) { // cannot move diagonal if no enemy to take
-              // skip1 = true
-              // skip2wl = true
-              skip2wr = true
+              skip1 = true
+              // skip2l = true
+              skip2r = true
               console.log('6')
             }
           }
         }
 
-        // !skip2wl and wk required to hide hint for castling if not valid anymore
-        if (currentPieceType === 'bk') {
-          if (!skip && !skip1 && !(skip2bl && idx === 8) && !(skip2br && idx === 9)) {
-            // console.log(skip, skip1, skip2, skip3, skip4)
+        if (!skip && !skip1) {
+          // console.log(skip, skip1, skip2, skip3, skip4)
 
-            const $div = document.createElement('div')
-            $board.appendChild($div)
-            const neighborSquare = document.querySelector('.' + sXY)
+          const $div = document.createElement('div')
+          $board.appendChild($div)
+          const neighborSquare = document.querySelector('.' + sXY)
 
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
+          if (neighborSquare === null) {
+            $div.classList.add('hint', sXY)
+          } else {
 
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
+            const neighborSquareColor = neighborSquare.classList.item(0)
+            console.log(currentPieceColor, neighborSquareColor)
+            if (currentPieceColor !== neighborSquareColor) {
+              checkKing(currentPiece, neighborSquare, $div)
+              $div.classList.add('capture-hint', sXY)
 
-              }
             }
           }
-        } else if (currentPieceType === 'wk') {
-          if (!skip && !skip1 && !(skip2wl && idx === 8) && !(skip2wr && idx === 9)) {
-            // console.log(skip, skip1, skip2, skip3, skip4)
 
-            const $div = document.createElement('div')
-            $board.appendChild($div)
-            const neighborSquare = document.querySelector('.' + sXY)
-
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
-
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
-
-              }
-            }
-          }
-        }
-        else {
-          if (!skip && !skip1) {
-            // console.log(skip, skip1, skip2, skip3, skip4)
-
-            const $div = document.createElement('div')
-            $board.appendChild($div)
-            const neighborSquare = document.querySelector('.' + sXY)
-
-            if (neighborSquare === null) {
-              $div.classList.add('hint', sXY)
-              console.log('add hint', idx)
-            } else {
-
-              const neighborSquareColor = neighborSquare.classList.item(0)
-              console.log(currentPieceColor, neighborSquareColor)
-              if (currentPieceColor !== neighborSquareColor) {
-                checkKing(currentPiece, neighborSquare, $div)
-                $div.classList.add('capture-hint', sXY)
-
-              }
-            }
-
-          }
         }
       }
     })
@@ -766,29 +600,6 @@ document.addEventListener('DOMContentLoaded', function () {
       console.log('check')
       if ($div !== null) $div.classList.add('check')
     }
-  }
-
-  function isSquareSafe(currentPiece) {
-    console.log('safe')
-
-    const currentPieceColor = currentPiece.classList.item(0)
-    const currentPieceType = currentPiece.classList.item(1)
-    const currentPiecePosition = currentPiece.classList.item(2)
-    const currPos = { x: 0, y: 0 }
-    currPos.x = parseInt(currentPiecePosition[2])
-    currPos.y = parseInt(currentPiecePosition[3])
-
-    moveRules[currentPieceType].forEach((i, idx) => {
-      const newPos = { x: 0, y: 0 }
-      newPos.x = currPos.x + i[0]
-      newPos.y = currPos.y + i[1]
-      const sXY = 's-' + newPos.x + newPos.y
-
-      if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
-
-
-      }
-    })
   }
 
   function mapNotation(currentPiece, targetPiece) {
@@ -909,12 +720,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function switchTurn() {
     console.log('disabled switchTurn')
-    if (1) {
+    if (0) {
       console.log(turn === 'whpiece' ? "black's turn" : "white's turn")
       turn = turn === 'whpiece' ? 'bkpiece' : 'whpiece'
       // savedHistory()
     }
-    console.log(turn, '\'s turn')
   }
 
   function selectPiece(elem) {
