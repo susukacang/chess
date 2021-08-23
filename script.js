@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // }
 
   const ibkList = [0, 2, 4, 5, 7]
+  // const ibkList = [0, 4, 7]
 
   ibkList.forEach(i => {
     console.log(i)
@@ -154,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
   })
 
   const iwhList = [24, 26, 28, 29, 31]
+  // const iwhList = [24, 28, 31]
 
   iwhList.forEach(i => {
     console.log(i)
@@ -499,6 +501,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let skip3br = false
     let skip1 = false
     let safe = true
+    // variable to ensure that castling is disabled if squares in the castling path is under threat by enemy
+    let castleVar = -1
 
     moveRules[currentPieceType].forEach((i, idx) => {
       const newPos = { x: 0, y: 0 }
@@ -735,7 +739,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (neighborSquare === null) {
               safe = isSquareSafe(sXY)
-              if (safe) $div.classList.add('hint', sXY)
+              if (safe) {
+                if (castleVar === -1 || idx !== castleVar)
+                  $div.classList.add('hint', sXY)
+              } else {
+                if (idx === 3)
+                  castleVar = 9
+                if (idx === 7)
+                  castleVar = 8
+              }
               // console.log('add hint', idx)
             } else {
 
@@ -758,7 +770,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (neighborSquare === null) {
               safe = isSquareSafe(sXY)
-              if (safe) $div.classList.add('hint', sXY)
+              if (safe) {
+                if (castleVar === -1 || idx !== castleVar)
+                  $div.classList.add('hint', sXY)
+              } else {
+                if (idx === 3)
+                  castleVar = 9
+                if (idx === 7)
+                  castleVar = 8
+              }
               // console.log('add hint', idx)
             } else {
 
@@ -782,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (neighborSquare === null) {
               safe = isSquareSafe(sXY)
-              if (safe) $div.classList.add('hint', sXY)
+              if (safe || 1) $div.classList.add('hint', sXY)
               // console.log('add hint', idx)
             } else {
 
@@ -800,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       }
     })
-
+    // console.log('castleVar', castleVar)
     document.querySelectorAll('.capture-hint').forEach((e) => console.log(e.classList.value))
 
   }
