@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
   //   $board.appendChild($divp)
   // }
 
-  const ibkList = [0, 2, 4, 5, 7]
+  const ibkList = [0, 1, 2, 4, 5, 6, 7]
   // const ibkList = [0, 4, 7]
 
   ibkList.forEach(i => {
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $board.appendChild($divp)
   })
 
-  const iwhList = [24, 26, 28, 29, 31]
+  const iwhList = [24, 25, 26, 28, 29, 30, 31]
   // const iwhList = [24, 28, 31]
 
   iwhList.forEach(i => {
@@ -512,6 +512,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
 
+        // pawn movement
         let skip = false
         if (currentPieceType === 'wp')
           if (currPos.y < 6) { // after initial move, pawn can on advance one step
@@ -538,6 +539,31 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
 
+        // knight movement
+        if (currentPieceType === 'bn') {
+          if (document.querySelector('.' + sXY) !== null) {
+            const $div = document.querySelector('.' + sXY)
+            if ($div.classList.item(1) !== 'bkpiece') {
+              const $div = document.createElement('div')
+              $board.appendChild($div)
+              $div.classList.add('capture-hint', sXY)
+            }
+            console.log('knight capture-hint class on enemy')
+          }
+        }
+        if (currentPieceType === 'wn') {
+          if (document.querySelector('.' + sXY) !== null) {
+            const $div = document.querySelector('.' + sXY)
+            if ($div.classList.item(1) !== 'whpiece') {
+              const $div = document.createElement('div')
+              $board.appendChild($div)
+              $div.classList.add('capture-hint', sXY)
+            }
+            console.log('knight capture-hint class on enemy')
+          }
+        }
+
+        // rook and bishop movement
         // each branch is 7 squares long i.e. rook has top, left, bottom, right branches of squares. after scanning each branch for obstruction, reset the skip1 parameter and scan next branch
         if ((idx % 7) == 0) {
           skip1 = false
@@ -855,6 +881,107 @@ document.addEventListener('DOMContentLoaded', function () {
     currPos.x = parseInt(pos_sXY[2])
     currPos.y = parseInt(pos_sXY[3])
 
+    // for knight
+    checkList = ['bn'] // 'wn'
+    checkList.forEach((currentPieceType) => {
+      console.log('currentPieceType', currentPieceType)
+      moveRules[currentPieceType].forEach((i, idx) => {
+        const newPos = { x: 0, y: 0 }
+        newPos.x = currPos.x + i[0]
+        newPos.y = currPos.y + i[1]
+        // sXY for neighborSquareColor i.e. in line of attack by rook, knight, bishop
+        const sXY = 's-' + newPos.x + newPos.y
+        console.log(idx, i, sXY, skip, safe)
+        if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
+          // console.log(idx, i, sXY, skip, safe)
+
+          const elem = document.querySelector('.' + sXY)
+          if (elem !== null) {
+            if (!elem.classList.contains('hint')) {
+              // if (!elem.classList.contains('wk')) {
+              if (elem.classList.contains(enemyPieceColor)) {
+                // check if enemy piece has the capability e.g. rook can only move straight, bishop can only move diagonal
+                if (1) {
+                  // simplify later
+                  let possibleEnemy = false
+
+                  if (elem.classList.item(1) === 'wn' || elem.classList.item(1) === 'bn') possibleEnemy = true
+
+                  console.log('possibleEnemy', possibleEnemy)
+                  if (possibleEnemy) {
+                    console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
+                    // console.log(elem.classList.contains('hint'))
+                    safe = false
+                    // skip = true
+                    const $div = document.createElement('div')
+                    $board.appendChild($div)
+                    $div.classList.add('threat', sXY)
+                  }
+                }
+              } else if (elem.classList.contains(currentPieceColor)) {
+                console.log('stop finding in path')
+                // skip = true
+              }
+
+              // }
+            }
+          } else { // unoccupied square
+            // skip = false
+          }
+        }
+      })
+    })
+
+    checkList = ['wn'] // 'wn'
+    checkList.forEach((currentPieceType) => {
+      console.log('currentPieceType', currentPieceType)
+      moveRules[currentPieceType].forEach((i, idx) => {
+        const newPos = { x: 0, y: 0 }
+        newPos.x = currPos.x + i[0]
+        newPos.y = currPos.y + i[1]
+        // sXY for neighborSquareColor i.e. in line of attack by rook, knight, bishop
+        const sXY = 's-' + newPos.x + newPos.y
+        console.log(idx, i, sXY, skip, safe)
+        if (newPos.x >= 0 && newPos.x < 8 && newPos.y >= 0 && newPos.y < 8) {
+          // console.log(idx, i, sXY, skip, safe)
+
+          const elem = document.querySelector('.' + sXY)
+          if (elem !== null) {
+            if (!elem.classList.contains('hint')) {
+              // if (!elem.classList.contains('wk')) {
+              if (elem.classList.contains(enemyPieceColor)) {
+                // check if enemy piece has the capability e.g. rook can only move straight, bishop can only move diagonal
+                if (1) {
+                  // simplify later
+                  let possibleEnemy = false
+
+                  if (elem.classList.item(1) === 'wn' || elem.classList.item(1) === 'bn') possibleEnemy = true
+
+                  console.log('possibleEnemy', possibleEnemy)
+                  if (possibleEnemy) {
+                    console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
+                    // console.log(elem.classList.contains('hint'))
+                    safe = false
+                    // skip = true
+                    const $div = document.createElement('div')
+                    $board.appendChild($div)
+                    $div.classList.add('threat', sXY)
+                  }
+                }
+              } else if (elem.classList.contains(currentPieceColor)) {
+                console.log('stop finding in path')
+                // skip = true
+              }
+
+              // }
+            }
+          } else { // unoccupied square
+            // skip = false
+          }
+        }
+      })
+    })
+
     // for rook
     checkList = ['wr'] // 'wn'
     checkList.forEach((currentPieceType) => {
@@ -885,8 +1012,13 @@ document.addEventListener('DOMContentLoaded', function () {
                   // simplify later
                   let possibleEnemy = false
 
-                  if (elem.classList.item(1) === 'wr' || elem.classList.item(1) === 'br') possibleEnemy = true
-
+                  if (elem.classList.item(1) === 'wr' || elem.classList.item(1) === 'br') {
+                    possibleEnemy = true
+                  } else {
+                    console.log('stop finding in path; blocked by unthreatening enemy')
+                    skip = true
+                    safe = true
+                  }
                   console.log('possibleEnemy', possibleEnemy)
                   if (possibleEnemy) {
                     console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
@@ -942,8 +1074,13 @@ document.addEventListener('DOMContentLoaded', function () {
                   // simplify later
                   let possibleEnemy = false
 
-                  if (elem.classList.item(1) === 'wb' || elem.classList.item(1) === 'bb') possibleEnemy = true
-
+                  if (elem.classList.item(1) === 'wb' || elem.classList.item(1) === 'bb') {
+                    possibleEnemy = true
+                  } else {
+                    console.log('stop finding in path; blocked by unthreatening enemy')
+                    skip = true
+                    safe = true
+                  }
                   console.log('possibleEnemy', possibleEnemy)
                   if (possibleEnemy) {
                     console.log(pos_sXY, 'under attack', elem.classList.value, skip, safe)
