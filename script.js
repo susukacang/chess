@@ -493,6 +493,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.hint, .capture-hint, .threat').forEach((e) => e.remove())
     console.log('showHints', currentPieceType)
 
+    let skip3wl = false
+    let skip3wr = false
+    let skip3bl = false
+    let skip3br = false
     let skip1 = false
     let safe = true
 
@@ -625,6 +629,25 @@ document.addEventListener('DOMContentLoaded', function () {
               // console.log('6b')
             }
           }
+          // deal with pieces obstructing castling paths
+          if (idx === 8) {
+            const $div = document.querySelector('.s-30')
+            if ($div !== null)
+              if (!$div.classList.contains('hint')) {
+                // skip1 = true
+                skip3bl = true
+                console.log('obstruction s-30')
+              }
+          }
+          if (idx === 9) {
+            const $div = document.querySelector('.s-50')
+            if ($div !== null)
+              if (!$div.classList.contains('hint')) {
+                // skip1 = true
+                skip3br = true
+                console.log('obstruction s-50')
+              }
+          }
         }
 
         if (currentPieceType === 'wk') {
@@ -680,70 +703,73 @@ document.addEventListener('DOMContentLoaded', function () {
               // console.log('6')
             }
           }
-        }
-
-
-        // check if castling squares are not threaten
-        if (0)
-          if (currentPieceType === 'wk' || currentPieceType === 'bk') {
-            safe = isSquareSafe(sXY)
-            // console.log('safe',safe)
-            if (!safe) {
-              console.log(sXY, 'square not safe')
-              // const $div = document.querySelector('.' + sXY)
-              // console.log($div.classList.value)
-            }
+          // deal with pieces obstructing castling paths
+          if (idx === 8) {
+            const $div = document.querySelector('.s-37')
+            if ($div !== null)
+              if (!$div.classList.contains('hint')) {
+                // skip1 = true
+                skip3wl = true
+                console.log('obstruction s-37')
+              }
           }
-
+          if (idx === 9) {
+            const $div = document.querySelector('.s-57')
+            if ($div !== null)
+              if (!$div.classList.contains('hint')) {
+                // skip1 = true
+                skip3wr = true
+                console.log('obstruction s-57')
+              }
+          }
+        }
 
         // !skip2wl and wk required to hide hint for castling if not valid anymore
         if (currentPieceType === 'bk') {
-          if (!skip && !skip1 && !(skip2bl && idx === 8) && !(skip2br && idx === 9)) {
+          if (!skip && !skip1 && !(skip2bl && idx === 8) && !(skip2br && idx === 9) && !(skip3bl && idx === 8) && !(skip3br && idx === 9)) {
             // console.log(skip, skip1, skip2, skip3, skip4)
 
             const $div = document.createElement('div')
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (safe || 1)
-              if (neighborSquare === null) {
-                safe = isSquareSafe(sXY)
-                if (safe) $div.classList.add('hint', sXY)
-                // console.log('add hint', idx)
-              } else {
+            if (neighborSquare === null) {
+              safe = isSquareSafe(sXY)
+              if (safe) $div.classList.add('hint', sXY)
+              // console.log('add hint', idx)
+            } else {
 
-                const neighborSquareColor = neighborSquare.classList.item(0)
-                // console.log(currentPieceColor, neighborSquareColor)
-                if (currentPieceColor !== neighborSquareColor) {
-                  checkKing(currentPiece, neighborSquare, $div)
-                  $div.classList.add('capture-hint', sXY)
+              const neighborSquareColor = neighborSquare.classList.item(0)
+              // console.log(currentPieceColor, neighborSquareColor)
+              if (currentPieceColor !== neighborSquareColor) {
+                checkKing(currentPiece, neighborSquare, $div)
+                $div.classList.add('capture-hint', sXY)
 
-                }
               }
+            }
           }
         } else if (currentPieceType === 'wk') {
-          if (!skip && !skip1 && !(skip2wl && idx === 8) && !(skip2wr && idx === 9)) {
+          if (!skip && !skip1 && !(skip2wl && idx === 8) && !(skip2wr && idx === 9) && !(skip3wl && idx === 8) && !(skip3wr && idx === 9)) {
             // console.log(skip, skip1, skip2, skip3, skip4)
 
             const $div = document.createElement('div')
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (safe || 1)
-              if (neighborSquare === null) {
-                safe = isSquareSafe(sXY)
-                if (safe) $div.classList.add('hint', sXY)
-                // console.log('add hint', idx)
-              } else {
+            if (neighborSquare === null) {
+              safe = isSquareSafe(sXY)
+              if (safe) $div.classList.add('hint', sXY)
+              // console.log('add hint', idx)
+            } else {
 
-                const neighborSquareColor = neighborSquare.classList.item(0)
-                // console.log(currentPieceColor, neighborSquareColor)
-                if (currentPieceColor !== neighborSquareColor) {
-                  checkKing(currentPiece, neighborSquare, $div)
-                  $div.classList.add('capture-hint', sXY)
+              const neighborSquareColor = neighborSquare.classList.item(0)
+              // console.log(currentPieceColor, neighborSquareColor)
+              if (currentPieceColor !== neighborSquareColor) {
+                checkKing(currentPiece, neighborSquare, $div)
+                $div.classList.add('capture-hint', sXY)
 
-                }
               }
+            }
           }
         }
         else {
@@ -754,21 +780,20 @@ document.addEventListener('DOMContentLoaded', function () {
             $board.appendChild($div)
             const neighborSquare = document.querySelector('.' + sXY)
 
-            if (safe || 1)
-              if (neighborSquare === null) {
-                safe = isSquareSafe(sXY)
-                if (safe) $div.classList.add('hint', sXY)
-                // console.log('add hint', idx)
-              } else {
+            if (neighborSquare === null) {
+              safe = isSquareSafe(sXY)
+              if (safe) $div.classList.add('hint', sXY)
+              // console.log('add hint', idx)
+            } else {
 
-                const neighborSquareColor = neighborSquare.classList.item(0)
-                // console.log(currentPieceColor, neighborSquareColor)
-                if (currentPieceColor !== neighborSquareColor) {
-                  checkKing(currentPiece, neighborSquare, $div)
-                  $div.classList.add('capture-hint', sXY)
+              const neighborSquareColor = neighborSquare.classList.item(0)
+              // console.log(currentPieceColor, neighborSquareColor)
+              if (currentPieceColor !== neighborSquareColor) {
+                checkKing(currentPiece, neighborSquare, $div)
+                $div.classList.add('capture-hint', sXY)
 
-                }
               }
+            }
 
           }
         }
@@ -810,7 +835,7 @@ document.addEventListener('DOMContentLoaded', function () {
     currPos.x = parseInt(pos_sXY[2])
     currPos.y = parseInt(pos_sXY[3])
 
-// for rook
+    // for rook
     checkList = ['wr'] // 'wn'
     checkList.forEach((currentPieceType) => {
       console.log('currentPieceType', currentPieceType)
@@ -867,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function () {
       })
     })
 
-// for bishop
+    // for bishop
     checkList = ['wb'] // 'wn'
     checkList.forEach((currentPieceType) => {
       console.log('currentPieceType', currentPieceType)
